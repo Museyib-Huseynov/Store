@@ -5,13 +5,97 @@ import { GlobalContext } from '../context/global_context'
 class PDP extends React.Component {
   constructor(props) {
     super(props)
+    this.state = {
+      mainImg: '',
+      Size: '',
+      Color: '',
+      Capacity: '',
+      'With USB 3 ports': '',
+      'Touch ID in keyboard': '',
+    }
   }
+
   static contextType = GlobalContext
 
-  render() {
-    const { data, currency } = this.context
+  componentDidMount() {
     const productID = window.location.href.split('/')[3]
-    const product = data[0]?.products.find((item) => item.id === productID)
+    const product = this.props.data[0]?.products.find(
+      (item) => item.id === productID
+    )
+    this.setState({
+      mainImg: product?.gallery[0],
+    })
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.data !== this.props.data) {
+      const productID = window.location.href.split('/')[3]
+      const product = this.props.data[0]?.products.find(
+        (item) => item.id === productID
+      )
+      this.setState({
+        mainImg: product.gallery[0],
+      })
+    }
+  }
+
+  handleAddToCart = (product, cartProducts, setCartProducts) => {
+    for (let i = 0; i < product.attributes.length; i++) {
+      if (this.state[product.attributes[i].name] === '') {
+        return
+      }
+    }
+
+    const newCartProduct = {
+      id: Date.now(),
+      productID: product.id,
+      Size: this.state.Size,
+      Color: this.state.Color,
+      Capacity: this.state.Capacity,
+      'With USB 3 ports': this.state['With USB 3 ports'],
+      'Touch ID in keyboard': this.state['Touch ID in keyboard'],
+      amount: 1,
+    }
+
+    if (
+      cartProducts.length === 0 ||
+      !cartProducts.find((i) => i.productID === product.id)
+    ) {
+      cartProducts.push(newCartProduct)
+      setCartProducts(cartProducts)
+    } else {
+      let matchedProducts = cartProducts.filter(
+        (i) => i.productID === product.id
+      )
+      outer: for (let i = 0; i < matchedProducts.length; i++) {
+        for (let j = 0; j < product.attributes.length; j++) {
+          if (
+            matchedProducts[i][product.attributes[j].name] !==
+            this.state[product.attributes[j].name]
+          ) {
+            continue outer
+          }
+        }
+        cartProducts = cartProducts.map((item) => {
+          if (item.id === matchedProducts[i].id) {
+            item.amount += 1
+            return item
+          }
+          return item
+        })
+        return setCartProducts(cartProducts)
+      }
+      cartProducts.push(newCartProduct)
+      setCartProducts(cartProducts)
+    }
+  }
+
+  render() {
+    const { cartProducts, setCartProducts } = this.context
+    const productID = window.location.href.split('/')[3]
+    const product = this.props.data[0]?.products.find(
+      (item) => item.id === productID
+    )
     if (!product) {
       return (
         <Wrapper>
@@ -20,19 +104,27 @@ class PDP extends React.Component {
       )
     }
     const price = product.prices.find(
-      (item) => item.currency.symbol === currency
-    ).amount
+      (item) => item.currency.symbol === this.props.currency
+    )?.amount
     return (
       <Wrapper>
         <div className='img-gallery'>
           {product.gallery.slice(0, 4).map((item, index) => {
             return (
-              <img key={index} src={item} alt={product.name} className='img' />
+              <img
+                key={index}
+                src={item}
+                alt={product.name}
+                className={
+                  item === this.state.mainImg ? 'img active-img' : 'img'
+                }
+                onClick={() => this.setState({ mainImg: item })}
+              />
             )
           })}
         </div>
         <img
-          src={product.gallery[0]}
+          src={this.state.mainImg}
           alt={product.name}
           className='mainImage'
         />
@@ -55,7 +147,19 @@ class PDP extends React.Component {
                       {i.items.map((j) => {
                         if (i.type === 'text') {
                           return (
-                            <p key={j.id} className='attribute-value-text'>
+                            <p
+                              key={j.id}
+                              className={
+                                this.state[i.name] === j.value
+                                  ? 'attribute-value-text attribute-value-text-active'
+                                  : 'attribute-value-text'
+                              }
+                              onClick={() => {
+                                this.setState({
+                                  [i.name]: j.value,
+                                })
+                              }}
+                            >
                               {j.displayValue}
                             </p>
                           )
@@ -63,8 +167,17 @@ class PDP extends React.Component {
                           return (
                             <p
                               key={j.id}
-                              className='attribute-value-swatch'
+                              className={
+                                this.state[i.name] === j.value
+                                  ? 'attribute-value-swatch attribute-value-swatch-active'
+                                  : 'attribute-value-swatch'
+                              }
                               style={{ background: `${j.value}` }}
+                              onClick={() => {
+                                this.setState({
+                                  [i.name]: j.value,
+                                })
+                              }}
                             ></p>
                           )
                         }
@@ -76,10 +189,19 @@ class PDP extends React.Component {
           </div>
           <p className='attribute-name'>Price:</p>
           <p className='price'>
-            {currency}
+            {this.props.currency}
             {price}
           </p>
-          <button className='addtocard'>ADD TO CART</button>
+          <button
+            type='button'
+            className={product.inStock ? 'addtocard' : 'addtocard btn-disabled'}
+            disabled={!product.inStock}
+            onClick={() =>
+              this.handleAddToCart(product, cartProducts, setCartProducts)
+            }
+          >
+            ADD TO CART
+          </button>
           <div
             className='description'
             dangerouslySetInnerHTML={{ __html: product.description }}
@@ -110,6 +232,10 @@ const Wrapper = styled.main`
     object-fit: cover;
     cursor: pointer;
     border: 1px solid #c4c4c4;
+  }
+
+  .active-img {
+    border: 2px solid #5ece7b;
   }
 
   .mainImage {
@@ -189,10 +315,20 @@ const Wrapper = styled.main`
     cursor: pointer;
   }
 
+  .attribute-value-text-active {
+    background: #000;
+    color: #fff;
+  }
+
   .attribute-value-swatch {
     width: 32px;
     height: 32px;
     cursor: pointer;
+  }
+
+  .attribute-value-swatch-active {
+    outline: 1px solid #5ece7b;
+    outline-offset: 2px;
   }
 
   .price {
@@ -220,6 +356,10 @@ const Wrapper = styled.main`
     line-height: 120%;
     cursor: pointer;
     margin-top: 4px;
+  }
+
+  .btn-disabled {
+    background: grey;
   }
 
   .description {

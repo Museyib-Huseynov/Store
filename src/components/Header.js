@@ -110,7 +110,10 @@ class Header extends React.Component {
                 className={
                   category === item.name.toUpperCase() ? 'li activeMenu' : 'li'
                 }
-                onClick={() => setCategory(item.name.toUpperCase())}
+                onClick={() => {
+                  setCategory(item.name.toUpperCase())
+                  this.props.navigate('/')
+                }}
               >
                 {item.name}
               </li>
