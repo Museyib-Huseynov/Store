@@ -2,6 +2,15 @@ import React from 'react'
 import styled from 'styled-components'
 import { GlobalContext } from '../context/global_context'
 import circleIcon from '../circle-icon.svg'
+import { useNavigate } from 'react-router-dom'
+
+const withRouter = (Component) => {
+  const Wrapper = (props) => {
+    const navigate = useNavigate()
+    return <Component navigate={navigate} {...props} />
+  }
+  return Wrapper
+}
 
 class PLP extends React.Component {
   static contextType = GlobalContext
@@ -17,7 +26,13 @@ class PLP extends React.Component {
         <div className='products-container'>
           {products?.map((item) => {
             return (
-              <div key={item.id} className='single-product-container'>
+              <div
+                key={item.id}
+                className='single-product-container'
+                onClick={() => {
+                  this.props.navigate(`/${item.id}`)
+                }}
+              >
                 <img
                   src={item.gallery[0]}
                   alt={item.name}
@@ -47,7 +62,7 @@ class PLP extends React.Component {
   }
 }
 
-export default PLP
+export default withRouter(PLP)
 
 const Wrapper = styled.main`
   .category {
@@ -91,7 +106,7 @@ const Wrapper = styled.main`
   .product-img {
     width: 354px;
     height: 330px;
-    object-fit: cover;
+    object-fit: contain;
     /* border: 1px solid red; */
   }
 

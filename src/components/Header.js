@@ -6,6 +6,8 @@ import arrowDown from '../arrow-down.svg'
 import arrowUp from '../arrow-up.svg'
 import cart from '../cart.svg'
 import { GlobalContext } from '../context/global_context'
+import { Outlet } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 const GET_CATEGORIES = gql`
   query GetData {
@@ -45,10 +47,17 @@ const GET_CATEGORIES = gql`
   }
 `
 
-function hookHOC(Component) {
+function withApollo(Component) {
   return function WrappedComponent(props) {
     const { loading, error, data } = useQuery(GET_CATEGORIES)
-    return <Component {...props} apolloServer={{ loading, error, data }} />
+    const navigate = useNavigate()
+    return (
+      <Component
+        {...props}
+        apolloServer={{ loading, error, data }}
+        navigate={navigate}
+      />
+    )
   }
 }
 
@@ -93,13 +102,13 @@ class Header extends React.Component {
 
     return (
       <Wrapper>
-        <ul>
+        <ul className='ul'>
           {data.categories.map((item) => {
             return (
               <li
                 key={item.name}
                 className={
-                  category === item.name.toUpperCase() ? 'activeMenu' : ''
+                  category === item.name.toUpperCase() ? 'li activeMenu' : 'li'
                 }
                 onClick={() => setCategory(item.name.toUpperCase())}
               >
@@ -108,8 +117,13 @@ class Header extends React.Component {
             )
           })}
         </ul>
-        <img src={logo} alt='logo' className='logo' />
-        <div className='actions'>
+        <img
+          src={logo}
+          alt='logo'
+          className='logo'
+          onClick={() => this.props.navigate('/')}
+        />
+        <div className='actions' ref={this.ref}>
           <p
             className='currency'
             onClick={() =>
@@ -136,7 +150,6 @@ class Header extends React.Component {
                 ? 'chooseCurrencyContainer display'
                 : 'chooseCurrencyContainer'
             }
-            ref={this.ref}
           >
             {data.currencies.map((item) => {
               return (
@@ -157,12 +170,13 @@ class Header extends React.Component {
           </div>
           <img src={cart} alt='cart' className='cart' />
         </div>
+        <Outlet />
       </Wrapper>
     )
   }
 }
 
-export default hookHOC(Header)
+export default withApollo(Header)
 
 const Wrapper = styled.header`
   width: 1440px;
@@ -172,7 +186,7 @@ const Wrapper = styled.header`
   left: 0;
   /* background: red; */
 
-  ul {
+  .ul {
     list-style-type: none;
     width: 234px;
     height: 56px;
@@ -185,7 +199,7 @@ const Wrapper = styled.header`
     /* background: blue; */
   }
 
-  li {
+  .li {
     padding: 0 16px;
     font-family: 'Raleway';
     font-weight: 600;
