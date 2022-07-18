@@ -124,7 +124,7 @@ class Header extends React.Component {
           src={logo}
           alt='logo'
           className='logo'
-          onClick={() => this.props.navigate('/')}
+          onClick={() => this.props.navigate('/cart')}
         />
         <div className='actions' ref={this.ref}>
           <p
