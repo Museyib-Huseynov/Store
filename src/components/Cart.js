@@ -19,6 +19,9 @@ class Cart extends React.Component {
             const price = product.prices.find(
               (j) => j.currency.symbol === currency
             ).amount
+            if (item.amount < 1) {
+              return null
+            }
             return (
               <div key={product.id} className='single-product-container'>
                 <p className='brand'>{product.brand}</p>
@@ -74,7 +77,50 @@ class Cart extends React.Component {
                     })}
                 </div>
                 <hr className='horizontal-line' />
-                <div className='product-imgs-container'>asasasasas</div>
+                <div className='product-imgs-container'>
+                  <div
+                    className='change-amount plus'
+                    onClick={() => {
+                      const newCartProducts = cartProducts.map((x) => {
+                        if (x.id === item.id) {
+                          x.amount += 1
+                          return x
+                        }
+                        return x
+                      })
+                      setCartProducts(newCartProducts)
+                    }}
+                  >
+                    +
+                  </div>
+                  <p className='amount'>{item.amount}</p>
+                  <div
+                    className='change-amount minus'
+                    onClick={() => {
+                      let newCartProducts = cartProducts.map((x) => {
+                        if (x.id === item.id) {
+                          x.amount -= 1
+                          if (x.amount === 0) {
+                            return null
+                          }
+                          return x
+                        }
+                        return x
+                      })
+                      newCartProducts = newCartProducts.filter(
+                        (y) => y !== null
+                      )
+                      setCartProducts(newCartProducts)
+                    }}
+                  >
+                    -
+                  </div>
+                  <img
+                    src={product.gallery[0]}
+                    alt={product.name}
+                    className='product-image'
+                  />
+                </div>
               </div>
             )
           })}
@@ -117,6 +163,7 @@ const Wrapper = styled.main`
 
   .single-product-container {
     width: 1240px;
+    min-height: 330px;
     display: grid;
     grid-auto-flow: row;
     grid-row-gap: 16px;
@@ -210,5 +257,42 @@ const Wrapper = styled.main`
 
   .product-imgs-container {
     grid-area: 1 / 2 / 6 / 3;
+    justify-self: end;
+    display: grid;
+    grid-template-columns: 45px 200px;
+    grid-template-rows: 45px 198px 45px;
+    grid-column-gap: 24px;
+  }
+
+  .change-amount {
+    width: 45px;
+    height: 45px;
+    border: 1px solid #1d1f22;
+    font-size: 2rem;
+    font-weight: 100;
+    display: grid;
+    place-items: center;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .plus {
+    grid-area: 1 / 1 / 2 / 2;
+  }
+
+  .minus {
+    grid-area: 3 / 1 / 4 / 2;
+  }
+
+  .amount {
+    grid-area: 2 / 1 / 3 / 2;
+    place-self: center;
+  }
+
+  .product-image {
+    width: 200px;
+    height: 288px;
+    object-fit: contain;
+    grid-area: 1 / 2 / 4 / 3;
   }
 `
