@@ -1,12 +1,26 @@
 import React from 'react'
 import styled from 'styled-components'
 import { GlobalContext } from '../context/global_context'
+import ImgGallery from './ImgGallery'
 
 class Cart extends React.Component {
   static contextType = GlobalContext
 
   render() {
     const { data, currency, cartProducts, setCartProducts } = this.context
+    const totalPrice = cartProducts
+      .reduce((acc, item) => {
+        const product = data[0].products.find((i) => i.id === item.productID)
+        const price = product.prices.find(
+          (j) => j.currency.symbol === currency
+        ).amount
+        return acc + item.amount * price
+      }, 0)
+      .toFixed(2)
+
+    const totalAmount = cartProducts.reduce((acc, item) => {
+      return acc + item.amount
+    }, 0)
     return (
       <Wrapper>
         <h2 className='cart-heading'>Cart</h2>
@@ -115,15 +129,20 @@ class Cart extends React.Component {
                   >
                     -
                   </div>
-                  <img
-                    src={product.gallery[0]}
-                    alt={product.name}
-                    className='product-image'
-                  />
+                  <ImgGallery images={product.gallery} />
                 </div>
               </div>
             )
           })}
+          <div className='result'>
+            <p className='final'>Tax 21%:</p>
+            <p className='final-value'>$42.00</p>
+            <p className='final'>Quantity:</p>
+            <p className='final-value'>{`${totalAmount}`}</p>
+            <p className='final'>Total: </p>
+            <p className='final-value'>{`${currency}${totalPrice}`}</p>
+          </div>
+          <button className='order'>ORDER</button>
         </div>
       </Wrapper>
     )
@@ -294,5 +313,39 @@ const Wrapper = styled.main`
     height: 288px;
     object-fit: contain;
     grid-area: 1 / 2 / 4 / 3;
+  }
+
+  .result {
+    display: grid;
+    grid-template-columns: 110px 200px;
+    grid-row-gap: 8px;
+  }
+
+  .final {
+    font-family: 'Raleway';
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .final-value {
+    font-family: 'Raleway';
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 28px;
+  }
+
+  .order {
+    width: 279px;
+    height: 43px;
+    background: #5ece7b;
+    border: none;
+    color: #fff;
+    font-family: 'Raleway';
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 120%;
+    margin-top: 16px;
+    cursor: pointer;
   }
 `
