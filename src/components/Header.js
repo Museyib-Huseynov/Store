@@ -8,6 +8,7 @@ import cart from '../cart.svg'
 import { GlobalContext } from '../context/global_context'
 import { Outlet } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom'
+import SmallCart from './SmallCart'
 
 const GET_CATEGORIES = gql`
   query GetData {
@@ -66,6 +67,7 @@ class Header extends React.Component {
     super(props)
     this.state = {
       currencyArrowOpen: false,
+      smallCartOpen: false,
     }
     this.ref = React.createRef()
     this.handleClickOutside = this.handleClickOutside.bind(this)
@@ -96,7 +98,11 @@ class Header extends React.Component {
 
   render() {
     const { loading, error, data } = this.props.apolloServer
-    const { category, setCategory, currency, setCurrency } = this.context
+    const { category, setCategory, currency, setCurrency, cartProducts } =
+      this.context
+    const totalAmount = cartProducts.reduce((acc, item) => {
+      return acc + item.amount
+    }, 0)
     if (loading) return null
     if (error) return null
 
@@ -171,7 +177,18 @@ class Header extends React.Component {
               )
             })}
           </div>
-          <img src={cart} alt='cart' className='cart' />
+          <div
+            className='cart-icon-container'
+            onClick={() =>
+              this.setState({ smallCartOpen: !this.state.smallCartOpen })
+            }
+          >
+            <img src={cart} alt='cart' />
+            {totalAmount > 0 && (
+              <div className='amounts-circle'>{totalAmount}</div>
+            )}
+            {this.state.smallCartOpen ? <SmallCart /> : null}
+          </div>
         </div>
         <Outlet />
       </Wrapper>
@@ -284,5 +301,23 @@ const Wrapper = styled.header`
 
   .activeCurrency {
     background: #eee;
+  }
+
+  .cart-icon-container {
+    position: relative;
+  }
+
+  .amounts-circle {
+    position: absolute;
+    top: -9px;
+    left: 12px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #000;
+    color: #fff;
+    font-size: 12px;
+    text-align: center;
+    line-height: 20px;
   }
 `

@@ -12,6 +12,7 @@ class PDP extends React.Component {
       Capacity: '',
       'With USB 3 ports': '',
       'Touch ID in keyboard': '',
+      addedToCart: false,
     }
   }
 
@@ -42,7 +43,7 @@ class PDP extends React.Component {
   handleAddToCart = (product, cartProducts, setCartProducts) => {
     for (let i = 0; i < product.attributes.length; i++) {
       if (this.state[product.attributes[i].name] === '') {
-        return
+        return false
       }
     }
 
@@ -63,6 +64,7 @@ class PDP extends React.Component {
     ) {
       cartProducts.push(newCartProduct)
       setCartProducts(cartProducts)
+      return true
     } else {
       let matchedProducts = cartProducts.filter(
         (i) => i.productID === product.id
@@ -83,10 +85,12 @@ class PDP extends React.Component {
           }
           return item
         })
-        return setCartProducts(cartProducts)
+        setCartProducts(cartProducts)
+        return true
       }
       cartProducts.push(newCartProduct)
       setCartProducts(cartProducts)
+      return true
     }
   }
 
@@ -196,11 +200,19 @@ class PDP extends React.Component {
             type='button'
             className={product.inStock ? 'addtocard' : 'addtocard btn-disabled'}
             disabled={!product.inStock}
-            onClick={() =>
-              this.handleAddToCart(product, cartProducts, setCartProducts)
-            }
+            onClick={() => {
+              let addedToCart = this.handleAddToCart(
+                product,
+                cartProducts,
+                setCartProducts
+              )
+              this.setState({ addedToCart })
+              setTimeout(() => {
+                this.setState({ addedToCart: false })
+              }, 1000)
+            }}
           >
-            ADD TO CART
+            {this.state.addedToCart ? 'ADDED' : 'ADD TO CART'}
           </button>
           <div
             className='description'
