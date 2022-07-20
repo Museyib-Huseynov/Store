@@ -195,7 +195,7 @@ const Wrapper = styled.div`
 
   .products-container {
     max-height: 450px;
-    overflow: hidden;
+    overflow: auto;
   }
 
   .single-product-container {
