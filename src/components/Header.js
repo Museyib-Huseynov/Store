@@ -96,6 +96,12 @@ class Header extends React.Component {
     }
   }
 
+  closeCart = () => {
+    this.setState({
+      smallCartOpen: false,
+    })
+  }
+
   render() {
     const { loading, error, data } = this.props.apolloServer
     const { category, setCategory, currency, setCurrency, cartProducts } =
@@ -130,7 +136,7 @@ class Header extends React.Component {
           src={logo}
           alt='logo'
           className='logo'
-          onClick={() => this.props.navigate('/cart')}
+          onClick={() => this.props.navigate('/')}
         />
         <div className='actions' ref={this.ref}>
           <p
@@ -177,17 +183,23 @@ class Header extends React.Component {
               )
             })}
           </div>
-          <div
-            className='cart-icon-container'
-            onClick={() =>
-              this.setState({ smallCartOpen: !this.state.smallCartOpen })
-            }
-          >
-            <img src={cart} alt='cart' />
+          <div className='cart-icon-container'>
+            <img
+              src={cart}
+              alt='cart'
+              onClick={() =>
+                this.setState({ smallCartOpen: !this.state.smallCartOpen })
+              }
+            />
             {totalAmount > 0 && (
               <div className='amounts-circle'>{totalAmount}</div>
             )}
-            {this.state.smallCartOpen ? <SmallCart /> : null}
+            {this.state.smallCartOpen ? (
+              <SmallCart
+                navigate={this.props.navigate}
+                closeCart={this.closeCart}
+              />
+            ) : null}
           </div>
         </div>
         <Outlet />
